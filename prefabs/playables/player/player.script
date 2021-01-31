@@ -1,0 +1,102 @@
+local camera = require "orthographic.camera"
+local lib = require "modules.lib"
+
+function init(self)
+	sound.play("/final#end")
+	msg.post(".", "acquire_input_focus")
+
+	go.property("speed", 5)
+	self.speed = vmath.vector3(self.speed, 0, 0)
+	-- Speed -----------------------------------------------------
+
+	go.property("bullet_scale", 10)
+	self.bullet_scale = vmath.vector3(self.bullet_scale)
+	-- Scale -----------------------------------------------------
+
+	go.property("camMove", false)
+	if self.camMove then
+		msg.post("camera", "follow", { target = hash("/player"), horizontal = true, vertical = false, lerp = 0.1, immediate = false })
+		msg.post("camera", "deadzone", { left = 1000 })
+	end
+	-- Camera ----------------------------------------------------
+
+	self.pos = go.get_position()
+	self.borderPos = go.get_position("/leftBorder")
+	self.posDistance = math.abs(self.borderPos.x - self.pos.x)
+	-- Border Pos -------------------------------------------------
+
+	self.mountainPos = go.get_position("mountain")
+	self.mountainPos1 = go.get_position("mountain1")
+
+	self.pineFPos = go.get_position("pineF")
+	self.pineFPos1 = go.get_position("pineF1")
+
+	self.pineBPos = go.get_position("pineB")
+	self.pineBPos1 = go.get_position("pineB1")
+	-- Parralax ----------------------------------------------------
+end
+
+function final(self)
+	-- Add finalization code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function update(self, dt)
+	self.pos = go.get_position()
+	self.borderPos = go.get_position("/leftBorder")
+
+	if self.posDistance < math.abs(self.borderPos.x - self.pos.x) and self.camMove then
+		local newPos = vmath.vector3(self.pos.x - self.posDistance, self.borderPos.y, 0)
+		go.set_position(newPos, "/leftBorder")
+		-- Border Pos --------------------------------------------------------------------------
+	end
+
+
+	local mountainNewPos = vmath.vector3(self.mountainPos.x - self.pos.x / 20, self.mountainPos.y, self.mountainPos.z)
+	local mountainNewPos1 = vmath.vector3(self.mountainPos1.x - self.pos.x / 20, self.mountainPos1.y, self.mountainPos1.z)
+	go.set_position(mountainNewPos, "mountain")
+	go.set_position(mountainNewPos1, "mountain1")
+
+	local pineFNewPos = vmath.vector3(self.pineFPos.x - self.pos.x / 10, self.pineFPos.y, self.pineFPos.z)
+	local pineFNewPos1 = vmath.vector3(self.pineFPos1.x - self.pos.x / 10, self.pineFPos1.y, self.pineFPos1.z)
+	go.set_position(pineFNewPos, "pineF")
+	go.set_position(pineFNewPos1, "pineF1")
+
+	local pineBNewPos = vmath.vector3(self.pineBPos.x - self.pos.x / 15, self.pineBPos.y, self.pineBPos.z)
+	local pineBNewPos1 = vmath.vector3(self.pineBPos1.x - self.pos.x / 15, self.pineBPos1.y, self.pineBPos1.z)
+	go.set_position(pineBNewPos, "pineB")
+	go.set_position(pineBNewPos1, "pineB1")
+	-- Parallax ----------------------------------------------------------------------------------
+end
+
+function on_message(self, message_id, message, sender)
+	-- Add message-handling code here
+	-- Learn more: https://defold.com/manuals/message-passing/
+	-- Remove this function if not needed
+end
+
+function on_input(self, action_id, action)
+	if action_id == lib.hashed("left") then
+		local pos = go.get_position()
+		go.set_position(pos + (self.speed * -1))
+
+	elseif action_id == lib.hashed("right") then
+		local pos = go.get_position()
+		go.set_position(pos + self.speed)
+	-- Left / Right -----------------------------------------------
+
+	elseif action_id == lib.hashed ("action_1") and action.pressed then
+		factory.create("#jumper", nil, nil, nil, vmath.vector3(self.bullet_scale))
+
+	elseif action_id == lib.hashed ("action_2") and action.pressed then
+		factory.create("#turner", nil, nil, nil, vmath.vector3(self.bullet_scale))
+	-- Mouse Action -----------------------------------------------
+	end
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Learn more: https://defold.com/manuals/hot-reload/
+	-- Remove this function if not needed
+end
